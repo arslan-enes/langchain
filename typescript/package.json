@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@langchain/core": "^0.3.36",
+    "@langchain/openai": "^0.4.2"
+  },
+  "type": "module",
+  "devDependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
