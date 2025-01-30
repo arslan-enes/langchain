@@ -1,10 +1,8 @@
 import { AzureChatOpenAI } from "@langchain/openai";
-import { HumanMessage } from "@langchain/core/messages";
 import dotenv from "dotenv";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { ChatOllama } from "@langchain/ollama";
 
-// Load environment variables from .env file
 dotenv.config();
 
 type ChatInput = {
@@ -13,6 +11,10 @@ type ChatInput = {
 
 async function main() {
   try {
+    const ollama_model = new ChatOllama({
+      model: "llama3.2",
+    });
+
     const azure_model = new AzureChatOpenAI({
       azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
       azureOpenAIEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
@@ -24,13 +26,15 @@ async function main() {
       "What colors are there in {country} flag?"
     );
 
-    const chain = prompt_template.pipe(azure_model);
+    const chain = prompt_template.pipe(ollama_model);
 
     const input: ChatInput = {
       country: "USA",
     };
 
-    chain.invoke(input);
+    const res = await chain.invoke(input);
+
+    console.log(res.content);
   } catch (error) {
     console.error(
       "Error:",
