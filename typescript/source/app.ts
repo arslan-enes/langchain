@@ -1,13 +1,13 @@
 import { AzureChatOpenAI } from "@langchain/openai";
 import dotenv from "dotenv";
-import { PromptTemplate } from "@langchain/core/prompts";
 import { ChatOllama } from "@langchain/ollama";
+import { createReactAgent, AgentExecutor } from "langchain/agents";
+import wiki_search from "./tools.js";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+import { react_prompt, template } from "./prompts.js";
 
 dotenv.config();
-
-type ChatInput = {
-  country: string;
-};
 
 async function main() {
   try {
@@ -22,19 +22,30 @@ async function main() {
       azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_DEPLOYMENT,
     });
 
-    const prompt_template = PromptTemplate.fromTemplate(
-      "What colors are there in {country} flag?"
-    );
+    const wiki_search_tool = tool(wiki_search, {
+      name: "Wikipedia Search Tools",
+      description:
+        "Search information from wikipedia which is the biggest encyclopedia in web.",
+      schema: z.string(),
+    });
 
-    const chain = prompt_template.pipe(ollama_model);
+    const agent = await createReactAgent({
+      llm: azure_model,
+      prompt: react_prompt,
+      tools: [wiki_search_tool],
+    });
 
-    const input: ChatInput = {
-      country: "USA",
-    };
+    const executor = AgentExecutor.fromAgentAndTools({
+      agent: agent,
+      tools: [wiki_search_tool],
+      verbose: true,
+    });
 
-    const res = await chain.invoke(input);
+    const res = await executor.invoke({
+      input: await template.invoke({ person: "Tom Brady" }),
+    });
 
-    console.log(res.content);
+    console.log(res);
   } catch (error) {
     console.error(
       "Error:",
@@ -43,7 +54,6 @@ async function main() {
   }
 }
 
-// Execute the main function
 main().catch((error) => {
   console.error("Unhandled error:", error);
   process.exit(1);
