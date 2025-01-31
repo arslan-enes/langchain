@@ -6,6 +6,7 @@ import wiki_search from "./tools.js";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { react_prompt, template } from "./prompts.js";
+import wiki_search_tool from "./tools.js";
 
 dotenv.config();
 
@@ -20,13 +21,6 @@ async function main() {
       azureOpenAIEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
       azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
       azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_DEPLOYMENT,
-    });
-
-    const wiki_search_tool = tool(wiki_search, {
-      name: "Wikipedia Search Tools",
-      description:
-        "Search information from wikipedia which is the biggest encyclopedia in web.",
-      schema: z.string(),
     });
 
     const agent = await createReactAgent({
